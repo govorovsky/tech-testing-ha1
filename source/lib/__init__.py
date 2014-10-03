@@ -101,6 +101,9 @@ def make_pycurl_request(url, timeout, useragent=None):
     return content, redirect_url
 
 
+ERROR_GET_URL = 'ERROR'
+
+
 def get_url(url, timeout, user_agent=None):
     """
     :return: урл, тип редиректа, содержимое страницы (если есть)

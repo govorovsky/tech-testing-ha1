@@ -18,8 +18,10 @@ if __name__ == '__main__':
         unittest.makeSuite(NotificationPusherTestCase),
         unittest.makeSuite(LoadConfigFromPyFileTestCase),
         unittest.makeSuite(DaemonizeTestCase),
+        unittest.makeSuite(MakePyCurlTester),
         # unittest.makeSuite(ParseCMDArgs),
         #
+        unittest.makeSuite(GetUrlTester),
         unittest.makeSuite(LibInitTestCase),
         unittest.makeSuite(RedirectCheckerTestCase),
     ))

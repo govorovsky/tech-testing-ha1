@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import mock
 import re
 import unittest
-from lib import to_unicode, to_str, get_counters, fix_market_url, GOOGLE_MARKET_URL, prepare_url, check_for_meta
+from lib import to_unicode, to_str, get_counters, fix_market_url, GOOGLE_MARKET_URL, prepare_url, check_for_meta, \
+    make_pycurl_request, get_url, ERROR_GET_URL
 
 
 class LibInitTestCase(unittest.TestCase):
@@ -38,22 +39,6 @@ class LibInitTestCase(unittest.TestCase):
         self.assertEqual(get_counters(content), [])
 
 
-    def test_fix_market_url(self):
-        prefix = 'market://'
-        source = 'details?test.com'
-        self.assertEqual(fix_market_url(prefix + source), GOOGLE_MARKET_URL + source)
-
-    def test_prepare_url_empty_src(self):
-        self.assertEqual(prepare_url(None), None)
-
-    def test_prepare_url_non_empty_src(self):
-        url_part = mock.MagicMock()
-        with mock.patch('lib.urlparse', mock.Mock(return_value=[url_part] * 6)) as parser:
-            prepare_url('test_url')
-            assert parser.called
-            assert url_part.encode.called
-
-
     def test_check_for_meta_without_meta_tag(self):
         result = mock.Mock()
         result.attrs = {}
@@ -81,8 +66,8 @@ class LibInitTestCase(unittest.TestCase):
         content = '423432;url=blabla'
         result.__getitem__ = mock.Mock(return_value=content)
         result.attrs = {'http-equiv': 'refresh', 'content': content}
-        with mock.patch.object(BeautifulSoup, 'find', mock.Mock(return_value=result)):
-            with mock.patch.object(re, 'search', mock.Mock(return_value=None)) as re_search:
+        with mock.patch('lib.BeautifulSoup.find', mock.Mock(return_value=result)):
+            with mock.patch('lib.re.search', mock.Mock(return_value=None)) as re_search:
                 self.assertEqual(check_for_meta('test', 'test'), None)
                 self.assertTrue(re_search.called, 'search for url pattern')
 
@@ -92,8 +77,67 @@ class LibInitTestCase(unittest.TestCase):
         content = '423432;url=' + url
         result.__getitem__ = mock.Mock(return_value=content)
         result.attrs = {'http-equiv': 'refresh', 'content': content}
-        with mock.patch.object(BeautifulSoup, 'find', mock.Mock(return_value=result)):
+        with mock.patch('lib.BeautifulSoup.find', mock.Mock(return_value=result)):
             self.assertEqual(check_for_meta('test', 'test'), url)
 
+    def test_fix_market_url(self):
+        prefix = 'market://'
+        source = 'details?test.com'
+        self.assertEqual(fix_market_url(prefix + source), GOOGLE_MARKET_URL + source)
+
+
+    def test_prepare_url_empty_src(self):
+        self.assertEqual(prepare_url(None), None)
+
+    def test_prepare_url_non_empty_src(self):
+        url_part = mock.MagicMock()
+        with mock.patch('lib.urlparse', mock.Mock(return_value=[url_part] * 6)) as parser:
+            prepare_url('test_url')
+            assert parser.called
+            assert url_part.encode.called
+
+
+class MakePyCurlTester(unittest.TestCase):
+    def setUp(self):
+        self.m_buff = mock.Mock()
+        self.m_curl = mock.Mock()
+        self.response = 'test response'
+        self.uagent = 'test'
+        self.redirurl = 'test.gov'
+        self.timeout = 999
+
+    def test_make_pycurl_req_no_redirect_no_uagent(self):
+        with mock.patch('lib.pycurl.Curl', mock.Mock(return_value=self.m_curl)):
+            with mock.patch('lib.StringIO', mock.Mock(return_value=self.m_buff)):
+                self.m_buff.getvalue = lambda: self.response
+                self.m_curl.getinfo = lambda ignore: None
+                self.assertEqual(make_pycurl_request('test', self.timeout, None), (self.response, None))
+                self.m_curl.setopt.assert_any_call(self.m_curl.TIMEOUT, self.timeout)
+
+    def test_make_pycurl_req_with_redirect_with_uagent(self):
+        with mock.patch('lib.pycurl.Curl', mock.Mock(return_value=self.m_curl)):
+            with mock.patch('lib.StringIO', mock.Mock(return_value=self.m_buff)):
+                self.m_buff.getvalue = lambda: self.response
+                self.m_curl.getinfo = lambda ignore: self.redirurl
+                self.assertEqual(make_pycurl_request('test', self.timeout, self.uagent), (self.response, self.redirurl))
+                self.m_curl.setopt.assert_any_call(self.m_curl.TIMEOUT, self.timeout)
+                self.m_curl.setopt.assert_any_call(self.m_curl.USERAGENT, self.uagent)
+
+
+class GetUrlTester(unittest.TestCase):
+    def setUp(self):
+        self.url = "test.com"
+        self.timeout = 999
+        self.uagent = None
+        self.errormsg = 'ERROR'
+        pass
+
+    @mock.patch('lib.make_pycurl_request', mock.Mock(side_effect=ValueError()))
+    def test_get_url_with_error(self):
+        self.assertEqual(get_url(self.url, 99, None), (self.url, ERROR_GET_URL, None))
+
+
+    def test_get_url_no_redirect(self):
+        pass
 
 
