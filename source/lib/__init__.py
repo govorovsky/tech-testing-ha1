@@ -73,7 +73,9 @@ def check_for_meta(content, url):
 
 def fix_market_url(url):
     """Преобразует market:// урлы в http://"""
-    return GOOGLE_MARKET_URL + url.lstrip("market://")
+    # bug: lstrip character-based
+    # return GOOGLE_MARKET_URL + url.lstrip("market://") dont work!
+    return GOOGLE_MARKET_URL + url[len('market://'):]
 
 
 def make_pycurl_request(url, timeout, useragent=None):
