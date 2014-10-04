@@ -115,11 +115,26 @@ class DaemonizeTestCase(unittest.TestCase):
 		mock_os._exit.assert_called_once_with(0)
 
 
-class ParseCMDArgs(unittest.TestCase):
+class ParseCMDArgsTestCase(unittest.TestCase):
 
-	@mock.patch("notification_pusher.argparse.ArgumentParser")
-	def test_params(self, mock_parser):
-		
+	@mock.patch("notification_pusher.argparse")
+	def test_params(self, mock_argparse):
+		parse_cmd_args("args")
+		mock_argparse.ArgumentParser.assert_called_once()
+
+
+class MainLoopTestCase(unittest.TestCase):
+
+	@mock.patch("notification_pusher.run_application")
+	@mock.patch("notification_pusher.logger")
+	def test_main_path(self, mock_run, mock_log):
+		mock_run = False
+
+		mock_config = Mock()
+		mock_config.QUEUE_PORT = 0
+
+		main_loop(mock_config)
+		mock.log.info.assert_called_once_with('Stop application loop.')
 
 
 		

@@ -16,8 +16,9 @@ if __name__ == '__main__':
         #unittest.makeSuite(NotificationPusherTestCase),
         #unittest.makeSuite(LoadConfigFromPyFileTestCase),
         #unittest.makeSuite(DaemonizeTestCase),
-        unittest.makeSuite(ParseCMDArgs),
-        
+        #unittest.makeSuite(ParseCMDArgsTestCase),
+        unittest.makeSuite(MainLoopTestCase),
+
         #unittest.makeSuite(RedirectCheckerTestCase),
     ))
     result = unittest.TextTestRunner().run(suite)
