@@ -21,6 +21,7 @@ if __name__ == '__main__':
         unittest.makeSuite(MakePyCurlTester),
         # unittest.makeSuite(ParseCMDArgs),
         #
+        unittest.makeSuite(RedirectHistoryChecker),
         unittest.makeSuite(GetUrlTester),
         unittest.makeSuite(LibInitTestCase),
         unittest.makeSuite(RedirectCheckerTestCase),

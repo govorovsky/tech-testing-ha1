@@ -115,7 +115,7 @@ def get_url(url, timeout, user_agent=None):
         content, new_redirect_url = make_pycurl_request(url, timeout, user_agent)
     except (pycurl.error, ValueError) as e:
         logger.error(u'error in url {} {}'.format(url, e))
-        return url, 'ERROR', content  # TODO add exception in ERROR
+        return url, ERROR_GET_URL, content  # TODO add exception in ERROR
 
     redirect_type = None
 
@@ -134,6 +134,9 @@ def get_url(url, timeout, user_agent=None):
         new_redirect_url = fix_market_url(new_redirect_url)
 
     return prepare_url(new_redirect_url), redirect_type, content
+
+
+ERROR_REDIRECT = 'ERROR'
 
 
 def get_redirect_history(url, timeout, max_redirects=30, user_agent=None):
@@ -176,7 +179,7 @@ def get_redirect_history(url, timeout, max_redirects=30, user_agent=None):
         history_types.append(redirect_type)
         history_urls.append(redirect_url)
 
-        if redirect_type == 'ERROR':
+        if redirect_type == ERROR_REDIRECT:
             break
 
         if len(history_urls) > max_redirects or (redirect_url in history_urls[:-1]):
@@ -198,6 +201,7 @@ def prepare_url(url):
     try:
         netloc = netloc.encode('idna')
     except UnicodeError:
+        logger.error('i want to debug this')
         pass
     path = quote(to_str(path, 'ignore'), safe='/%+$!*\'(),')
     qs = quote_plus(to_str(qs, 'ignore'), safe=':&%=+$!*\'(),')
