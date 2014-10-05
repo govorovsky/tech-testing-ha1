@@ -21,6 +21,7 @@ def get_redirect_history_from_task(task, timeout, max_redirects=30, user_agent=N
     history_types, history_urls, counters = get_redirect_history(
         url, timeout, max_redirects, user_agent
     )
+
     if 'ERROR' in history_types and not is_recheck:
         task.data['recheck'] = True
         data = task.data
@@ -45,6 +46,7 @@ def worker(config, parent_pid):
         space=config.INPUT_QUEUE_SPACE,
         name=config.INPUT_QUEUE_TUBE
     )
+
     logger.info(u'Connected to input queue server on {host}:{port} space #{space}. name={name}'.format(
         host=input_tube.queue.host,
         port=input_tube.queue.port,

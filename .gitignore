@@ -1,5 +1,8 @@
+study/
 *.py[cod]
-.coverage
 
+.coverage
 .vagrant/
 htmlcov/
+.coveragerc
+

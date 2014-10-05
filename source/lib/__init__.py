@@ -19,15 +19,17 @@ OK_URL = re.compile(r'http(?:s)?://(www\.)?odnoklassniki\.ru/', re.I)
 MM_URL = re.compile(r'http(?:s)?://my\.mail\.ru/apps/', re.I)
 
 COUNTER_TYPES = (
-    ('GOOGLE_ANALYTICS', re.compile(r'.*google-analytics\.com/ga\.js.*', re.I+re.S)),
-    ('YA_METRICA', re.compile(r'.*mc\.yandex\.ru/metrika/watch\.js.*', re.I+re.S)),
-    ('TOP_MAIL_RU', re.compile(r'.*top-fwz1\.mail\.ru/counter.*', re.I+re.S)),
-    ('TOP_MAIL_RU', re.compile(r'.*top\.mail\.ru/jump\?from.*', re.I+re.S)),
-    ('DOUBLECLICK', re.compile(r'.*//googleads\.g\.doubleclick\.net/pagead/viewthroughconversion.*', re.I+re.S)),
-    ('VISUALDNA', re.compile(r'.*//a1\.vdna-assets\.com/analytics\.js.*', re.I+re.S)),
-    ('LI_RU', re.compile(r'.*/counter\.yadro\.ru/hit.*', re.I+re.S)),
-    ('RAMBLER_TOP100', re.compile(r'.*counter\.rambler\.ru/top100.*', re.I+re.S))
+    ('GOOGLE_ANALYTICS', re.compile(r'.*google-analytics\.com/ga\.js.*', re.I + re.S)),
+    ('YA_METRICA', re.compile(r'.*mc\.yandex\.ru/metrika/watch\.js.*', re.I + re.S)),
+    ('TOP_MAIL_RU', re.compile(r'.*top-fwz1\.mail\.ru/counter.*', re.I + re.S)),
+    ('TOP_MAIL_RU', re.compile(r'.*top\.mail\.ru/jump\?from.*', re.I + re.S)),
+    ('DOUBLECLICK', re.compile(r'.*//googleads\.g\.doubleclick\.net/pagead/viewthroughconversion.*', re.I + re.S)),
+    ('VISUALDNA', re.compile(r'.*//a1\.vdna-assets\.com/analytics\.js.*', re.I + re.S)),
+    ('LI_RU', re.compile(r'.*/counter\.yadro\.ru/hit.*', re.I + re.S)),
+    ('RAMBLER_TOP100', re.compile(r'.*counter\.rambler\.ru/top100.*', re.I + re.S))
 )
+
+GOOGLE_MARKET_URL = 'http://play.google.com/store/apps/'
 
 
 def to_unicode(val, errors='strict'):
@@ -71,7 +73,9 @@ def check_for_meta(content, url):
 
 def fix_market_url(url):
     """Преобразует market:// урлы в http://"""
-    return 'http://play.google.com/store/apps/' + url.lstrip("market://")
+    # bug: lstrip character-based
+    # return GOOGLE_MARKET_URL + url.lstrip("market://") dont work!
+    return GOOGLE_MARKET_URL + url[len('market://'):]
 
 
 def make_pycurl_request(url, timeout, useragent=None):
@@ -97,6 +101,9 @@ def make_pycurl_request(url, timeout, useragent=None):
     if redirect_url is not None:
         redirect_url = to_unicode(redirect_url, 'ignore')
     return content, redirect_url
+
+
+ERROR_GET_URL = 'ERROR'
 
 
 def get_url(url, timeout, user_agent=None):
@@ -195,3 +202,4 @@ def prepare_url(url):
     path = quote(to_str(path, 'ignore'), safe='/%+$!*\'(),')
     qs = quote_plus(to_str(qs, 'ignore'), safe=':&%=+$!*\'(),')
     return urlunparse((scheme, netloc, path, qs, anchor, fragments))
+

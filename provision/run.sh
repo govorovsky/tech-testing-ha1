@@ -20,9 +20,9 @@ else
         python-dev \
         python-pip \
         tarantool-lts
-    sudo pip install -Ur ${HOME}/Documents/qa/tech-testing-ha1/requirements.txt
-    sudo cp ${HOME}/Documents/qa/tech-testing-ha1/provision/tarantool.cfg /etc/tarantool/instances.enabled/tarantool.cfg
-    sudo cp ${HOME}/Documents/qa/tech-testing-ha1/provision/init.lua /usr/share/tarantool/lua/init.lua
+    sudo pip install -Ur ${HOME}/tech-testing-ha1/requirements.txt
+    sudo cp ${HOME}/tech-testing-ha1/provision/tarantool.cfg /etc/tarantool/instances.enabled/tarantool.cfg
+    sudo cp ${HOME}/tech-testing-ha1/provision/init.lua /usr/share/tarantool/lua/init.lua
 fi
 
 sudo service tarantool-lts restart
