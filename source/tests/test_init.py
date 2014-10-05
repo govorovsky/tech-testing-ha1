@@ -4,14 +4,11 @@ import mock
 import re
 import unittest
 from lib import to_unicode, to_str, get_counters, fix_market_url, GOOGLE_MARKET_URL, prepare_url, check_for_meta, \
-    make_pycurl_request, get_url, ERROR_GET_URL, OK_REDIRECT, REDIRECT_HTTP, REDIRECT_META
+    make_pycurl_request, get_url, ERROR_GET_URL, OK_REDIRECT, REDIRECT_HTTP, REDIRECT_META, get_redirect_history, \
+    ERROR_REDIRECT
 
 
 class LibInitTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
-
-
     def test_to_unicode_with_unicode_source(self):
         src = u'te12kiooщщщйраloe'
         assert isinstance(to_unicode(src), unicode)
@@ -95,6 +92,16 @@ class LibInitTestCase(unittest.TestCase):
 
     def test_prepare_url_empty_src(self):
         self.assertEqual(prepare_url(None), None)
+
+    def test_prepare_url_unicode_error(self):
+        url_part = mock.MagicMock()
+        url_part.encode = mock.Mock(side_effect=UnicodeError)
+        with mock.patch('lib.urlparse', mock.Mock(return_value=[url_part] * 6)) as parser:
+            with mock.patch('lib.logger', mock.Mock()) as logger:
+                prepare_url('test_url')
+                assert url_part.encode.called
+                assert logger.error.called
+
 
     def test_prepare_url_non_empty_src(self):
         url_part = mock.MagicMock()
@@ -181,7 +188,43 @@ class GetUrlTester(unittest.TestCase):
                              ' market redirect')
 
 
+class RedirectHistoryChecker(unittest.TestCase):
+    def setUp(self):
+        self.ok_redir_url = 'http://www.odnoklassniki.ru/llll13p21st.redirect'
+        self.mm_redir_url = 'http://my.mail.ru/apps/'
+        self.timeout = 999
+        self.url = 'http://tesqac3432.ru'
+        self.url_to_redir = 'http://baalala.com'
+        self.norm_redir = 'norm redir'
 
+    def test_redirect_history_ignore_ok_mm(self):
+        self.assertEqual(get_redirect_history(self.ok_redir_url, self.timeout), ([], [self.ok_redir_url], []),
+                         'redir history for ok url')
+        self.assertEqual(get_redirect_history(self.mm_redir_url, self.timeout), ([], [self.mm_redir_url], []),
+                         'redir history for mm url')
+
+
+    def test_redirect_history_not_redir_url(self):
+        with mock.patch('lib.get_url', mock.Mock(return_value=(None, None, None))):
+            self.assertEqual(get_redirect_history(self.url, self.timeout), ([], [self.url], []))
+
+    def test_redirect_history_redir_url_type_error(self):
+        with mock.patch('lib.get_url', mock.Mock(return_value=(self.url_to_redir, ERROR_REDIRECT, None))):
+            self.assertEqual(get_redirect_history(self.url, self.timeout),
+                             ([ERROR_REDIRECT], [self.url, self.url_to_redir], []))
+
+
+    def test_redirect_history_cyclic_redirects_check(self):
+        with mock.patch('lib.get_url', mock.Mock(return_value=(self.url_to_redir, self.norm_redir, None))):
+            self.assertEqual(get_redirect_history(self.url, self.timeout),
+                             ([self.norm_redir, self.norm_redir], [self.url, self.url_to_redir, self.url_to_redir], []),
+                             'cyclic redirect')
+
+    def test_redirect_history_max_redirects_check(self):
+        max_redir = 1
+        with mock.patch('lib.get_url', mock.Mock(return_value=(self.url_to_redir, self.norm_redir, None))):
+            self.assertEqual(get_redirect_history(self.url, self.timeout, max_redir),
+                             ([self.norm_redir], [self.url, self.url_to_redir], []), 'max redirects')
 
 
 

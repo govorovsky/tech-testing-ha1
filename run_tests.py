@@ -18,6 +18,7 @@ import tests.test_notification_pusher
 if __name__ == '__main__':
     suite = unittest.TestSuite((
         unittest.makeSuite(MakePyCurlTester),
+        unittest.makeSuite(RedirectHistoryChecker),
         unittest.makeSuite(GetUrlTester),
         unittest.makeSuite(LibInitTestCase),
         unittest.makeSuite(RedirectCheckerTestCase),
