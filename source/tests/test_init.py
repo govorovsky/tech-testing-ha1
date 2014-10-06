@@ -197,9 +197,11 @@ class RedirectHistoryChecker(unittest.TestCase):
         self.url_to_redir = 'http://baalala.com'
         self.norm_redir = 'norm redir'
 
-    def test_redirect_history_ignore_ok_mm(self):
+    def test_redirect_history_ignore_ok(self):
         self.assertEqual(get_redirect_history(self.ok_redir_url, self.timeout), ([], [self.ok_redir_url], []),
                          'redir history for ok url')
+
+    def test_redirect_history_ignore_mm(self):
         self.assertEqual(get_redirect_history(self.mm_redir_url, self.timeout), ([], [self.mm_redir_url], []),
                          'redir history for mm url')
 
